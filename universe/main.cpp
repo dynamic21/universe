@@ -84,9 +84,9 @@ public:
 							mag -= depth;*/
 							//cout << "mag after: " << mag << " and depth after: " << depth << endl;
 
-							vd2d dapply = npos * mag * 0.9;
+							/*vd2d dapply = npos * mag * 0.9;
 							mposv += dapply;
-							posvs[j] -= dapply;/**/
+							posvs[j] -= dapply;*/
 						}
 
 						vd2d dapply = npos * (depth / 2);
@@ -117,7 +117,7 @@ public:
 		for (int i = 0; i < poss.size(); i++)
 		{
 			posvs[i] += poscs[i];
-			poss[i] = poss[i] + poscs[i] + posvs[i] * fElapsedTime;
+			poss[i] = poss[i] + posvs[i] * fElapsedTime;
 			poscs[i] = { 0,0 };
 		}
 	}
@@ -152,14 +152,14 @@ public:
 		m_z = (unsigned int)duration_cast<seconds>(high_resolution_clock::now().time_since_epoch()).count();
 		m_w = (unsigned int)duration_cast<microseconds>(high_resolution_clock::now().time_since_epoch()).count();
 		zoom = (double)1 / 1;
-		for (int i = 0; i < 1000; i++)
+		/*for (int i = 0; i < 1000; i++)
 		{
 			poss.push_back((vd2d{ doubleRand() * ScreenWidth(), doubleRand() * ScreenHeight() } - halfScreen) * 10);
 			posvs.push_back(vd2d{ doubleRand() * 200 - 100, doubleRand() * 200 - 100 });
 			poscs.push_back(vd2d{ 0,0 });
 			size.push_back(100);
-		}/**/
-		/*poss.push_back(vd2d{ 300, 0 });
+		}*/
+		poss.push_back(vd2d{ 300, 0 });
 		posvs.push_back(vd2d{ 0, 0 });
 		poscs.push_back(vd2d{ 0,0 });
 		size.push_back(100);
@@ -167,7 +167,7 @@ public:
 		posvs.push_back(vd2d{ 0, 0 });
 		poscs.push_back(vd2d{ 0,0 });
 		size.push_back(100);
-		poss.push_back(vd2d{ 0, 100 });
+		/*poss.push_back(vd2d{ 0, 100 });
 		posvs.push_back(vd2d{ 0, 100 });
 		poscs.push_back(vd2d{ 0,0 });
 		size.push_back(100);*/
