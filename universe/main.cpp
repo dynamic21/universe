@@ -15,7 +15,7 @@ using std::chrono::microseconds;
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 
-#define gravity 100000
+#define g 100000
 #define userFriction 0.1
 
 class Example : public olc::PixelGameEngine
@@ -51,7 +51,7 @@ public:
 		return (intRand() + 1.0) * 2.328306435454494e-10;
 	}
 
-	void applyForce(float fElapsedTime, bool on) {
+	void collision(float fElapsedTime) {
 
 		for (int i = 0; i < posvs.size() - 1; i++)
 		{
@@ -64,46 +64,34 @@ public:
 				vd2d dpos = poss[j] - mpos;
 				double dis = dpos.mag2();
 
-				/*DrawLine((mpos - pos) * zoom + halfScreen, (mpos + (dpos / dis * gravity) - pos) * zoom + halfScreen, olc::RED);
-				DrawLine((poss[j] - pos) * zoom + halfScreen, (poss[j] - (dpos / dis * gravity) - pos) * zoom + halfScreen, olc::RED);*/
+				/*mposv += dpos / dis * g * fElapsedTime;
+				posvs[j] -= dpos / dis * g * fElapsedTime;*/
 
-				if (on) {
-					/*cout << "ball " << i << " and ball " << j << " is " << dpos << endl;
-					cout << "ball " << i << " is " << mpos << endl;
-					cout << "ball " << j << " is " << poss[j] << endl;
-					cout << "dis " << dis << endl;
-					cout << "dpos / dis " << (dpos / dis) << endl;
-					cout << "gravity * dpos / dis " << (dpos / dis * gravity) << endl;
-					cout << endl;*/
-					mposv += dpos / dis * gravity * fElapsedTime;
-					posvs[j] -= dpos / dis * gravity * fElapsedTime;
+				if (dpos.x < totalSize && dpos.y < totalSize) {
+					if (totalSize * totalSize > dis) {
 
-					if (dpos.x < totalSize && dpos.y < totalSize) {
-						if (totalSize * totalSize > dis) {
+						dis = sqrt(dis);
+						double depth = dis - totalSize;
+						vd2d dposv = posvs[j] - mposv;
+						vd2d npos = dpos / dis;
+						double mag = dposv.dot(npos);
 
-							dis = sqrt(dis);
-							double depth = dis - totalSize;
-							vd2d dposv = posvs[j] - mposv;
-							vd2d npos = dpos / dis;
-							double mag = dposv.dot(npos);
+						if (mag <= 0)
+						{
 
-							if (mag <= 0)
-							{
+							//cout << "mag before: " << mag << " and depth before: " << depth << endl;
+							/*depth = max(mag, depth);
+							mag -= depth;*/
+							//cout << "mag after: " << mag << " and depth after: " << depth << endl;
 
-								//cout << "mag before: " << mag << " and depth before: " << depth << endl;
-								depth = max(mag, depth);
-								mag -= depth;
-								//cout << "mag after: " << mag << " and depth after: " << depth << endl;
-
-								vd2d dapply = npos * mag * 0.9;
-								mposv += dapply;
-								posvs[j] -= dapply;
-
-								dapply = npos * (depth / 2);
-								poscs[i] += dapply;
-								poscs[j] -= dapply;/**/
-							}
+							vd2d dapply = npos * mag * 0.9;
+							mposv += dapply;
+							posvs[j] -= dapply;/**/
 						}
+
+						vd2d dapply = npos * (depth / 2);
+						poscs[i] += dapply;
+						poscs[j] -= dapply;/**/
 					}
 				}
 			}
@@ -111,10 +99,25 @@ public:
 		}
 	}
 
+	void gravity(float fElapsedTime) {
+
+		for (int i = 0; i < posvs.size() - 1; i++)
+		{
+			for (int j = i + 1; j < posvs.size(); j++)
+			{
+				vd2d dpos = poss[j] - poss[i];
+				double dis = dpos.mag2();
+				posvs[i] += dpos / dis * g * fElapsedTime;
+				posvs[j] -= dpos / dis * g * fElapsedTime;
+			}
+		}
+	}
+
 	void move(float fElapsedTime) {
 		for (int i = 0; i < poss.size(); i++)
 		{
-			poss[i] = poss[i] + poscs[i] + (posvs[i] * fElapsedTime);
+			posvs[i] += poscs[i];
+			poss[i] = poss[i] + poscs[i] + posvs[i] * fElapsedTime;
 			poscs[i] = { 0,0 };
 		}
 	}
@@ -149,7 +152,7 @@ public:
 		m_z = (unsigned int)duration_cast<seconds>(high_resolution_clock::now().time_since_epoch()).count();
 		m_w = (unsigned int)duration_cast<microseconds>(high_resolution_clock::now().time_since_epoch()).count();
 		zoom = (double)1 / 1;
-		for (int i = 0; i < 2000; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			poss.push_back((vd2d{ doubleRand() * ScreenWidth(), doubleRand() * ScreenHeight() } - halfScreen) * 10);
 			posvs.push_back(vd2d{ doubleRand() * 200 - 100, doubleRand() * 200 - 100 });
@@ -176,8 +179,9 @@ public:
 		user(fElapsedTime);
 		drawScreen(fElapsedTime);
 		//GetKey(Key::SPACE).bHeld
-		applyForce(fElapsedTime, GetKey(Key::SPACE).bHeld);
 		if (GetKey(Key::SPACE).bHeld) {
+			collision(fElapsedTime);
+			gravity(fElapsedTime);
 			move(fElapsedTime);
 		}
 
