@@ -15,7 +15,7 @@ using std::chrono::microseconds;
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 
-#define gravity 100000
+#define gravity 100
 #define userFriction 0.1
 
 class Example : public olc::PixelGameEngine
@@ -91,8 +91,8 @@ public:
 							{
 
 								//cout << "mag before: " << mag << " and depth before: " << depth << endl;
-								depth = max(mag, depth);
-								mag -= depth;
+								//depth = max(mag, depth);
+								//mag -= depth;
 								//cout << "mag after: " << mag << " and depth after: " << depth << endl;
 
 								vd2d dapply = npos * mag * 0.9;
