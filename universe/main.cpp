@@ -16,8 +16,22 @@ using std::chrono::microseconds;
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 
-#define gravity 1
+#define G 1
 #define controlFriction 0.1
+
+class ball
+{
+public:
+	vd2d pos;
+	vd2d posv;
+	Pixel color;
+
+	ball(vd2d Pos, vd2d Posv, Pixel Color) {
+		pos = Pos;
+		posv = Posv;
+		color = Color;
+	}
+};
 
 class Example : public olc::PixelGameEngine
 {
@@ -36,9 +50,7 @@ public:
 	unsigned int m_z;
 	unsigned int m_w;
 
-	vector<vd2d> poss;
-	vector<vd2d> posvs;
-	vector<Pixel> colors;
+	vector<ball> balls;
 
 	unsigned int intRand()
 	{
@@ -50,7 +62,10 @@ public:
 
 	double doubleRand() { return (intRand() + 1.0) * 2.328306435454494e-10; }
 
-	Pixel mapToRainbow(double d) {
+	Pixel mapToRainbow(double d)
+	{
+		d = d - 6.0 * int(d / 6);
+
 		double r = (d > 3) ? max(0.0, min(1.0, d - 4)) : max(0.0, min(1.0, 2 - d));
 		double g = (d > 2) ? max(0.0, min(1.0, 4 - d)) : max(0.0, min(1.0, d));
 		double b = (d > 4) ? max(0.0, min(1.0, 6 - d)) : max(0.0, min(1.0, d - 2));
@@ -74,33 +89,40 @@ public:
 
 	void collision(float fElapsedTime)
 	{
-		for (int i = 0; i < posvs.size() - 1; i++)
+		for (int i = 0; i < balls.size() - 1; i++)
 		{
-			vd2d mposv = posvs[i];
-
-			for (int j = i + 1; j < posvs.size(); j++)
+			for (int j = i + 1; j < balls.size(); j++)
 			{
-				vd2d dpos = poss[j] - poss[i];
+				vd2d dpos = balls[j].pos - balls[i].pos;
 				double dis = dpos.mag2();
-
-				mposv += dpos / dis * gravity * fElapsedTime;
-				posvs[j] -= dpos / dis * gravity * fElapsedTime;
 
 				if (dis < 4) {
 
-					dis = sqrt(dis);
-					vd2d dposv = posvs[j] - mposv;
-					vd2d npos = dpos / dis;
-					double mag = dposv.dot(npos);
+					dpos /= sqrt(dis);
+					dis = (balls[j].posv - balls[i].posv).dot(dpos);
 
-					if (mag < 0) {
-						vd2d dapply = npos * mag;
-						mposv += dapply;
-						posvs[j] -= dapply;
+					if (dis < 0) {
+						dpos *= dis;
+						balls[i].posv += dpos;
+						balls[j].posv -= dpos;
 					}
 				}
 			}
-			posvs[i] = mposv;
+		}
+	}
+
+	void gravity(double fElapsedTime)
+	{
+		for (int i = 0; i < balls.size() - 1; i++)
+		{
+			for (int j = i + 1; j < balls.size(); j++)
+			{
+				vd2d dpos = balls[j].pos - balls[i].pos;
+				dpos *= G * fElapsedTime / dpos.mag2();
+
+				balls[i].posv += dpos;
+				balls[j].posv -= dpos;
+			}
 		}
 	}
 
@@ -108,10 +130,10 @@ public:
 	{
 		Clear(Pixel(0, 0, 0));
 
-		for (int i = 0; i < poss.size(); i++)
+		for (int i = 0; i < balls.size(); i++)
 		{
-			poss[i] = poss[i] + posvs[i] * fElapsedTime;
-			FillCircle((poss[i] - pos) * zoom + halfScreen, zoom, colors[i]);
+			balls[i].pos += balls[i].posv * fElapsedTime;
+			FillCircle((balls[i].pos - pos) * zoom + halfScreen, zoom, balls[i].color);
 		}
 	}
 
@@ -124,9 +146,11 @@ public:
 
 		for (int i = 0; i < 2000; i++)
 		{
-			poss.push_back((vd2d{ doubleRand() * ScreenWidth(), doubleRand() * ScreenHeight() } - halfScreen));
-			posvs.push_back(vd2d{ 0, 0 });
-			colors.push_back(mapToRainbow(doubleRand() * 6));
+			vd2d bPos = vd2d{ doubleRand() * ScreenWidth(), doubleRand() * ScreenHeight() } - halfScreen;
+			vd2d bPosv = { 0, 0 };
+			Pixel bColor = mapToRainbow(doubleRand() * 2 + 0.0001 * (bPos.x * bPos.x + bPos.y * bPos.y));
+			ball newBall(bPos, bPosv, bColor);
+			balls.push_back(newBall);
 		}
 
 		return true;
@@ -135,8 +159,9 @@ public:
 	bool OnUserUpdate(float fElapsedTime) override
 	{
 		control(fElapsedTime);
-		collision(0.01); // defined until stable fps
-		drawScreen(0.01); // defined until stable fps
+		gravity(fElapsedTime);
+		collision(fElapsedTime);
+		drawScreen(fElapsedTime);
 
 		return true;
 	}
@@ -145,7 +170,9 @@ public:
 int main()
 {
 	Example demo;
+
 	if (demo.Construct(500, 500, 2, 2))
 		demo.Start();
+
 	return 0;
 }
