@@ -135,8 +135,8 @@ public:
 	bool OnUserUpdate(float fElapsedTime) override
 	{
 		control(fElapsedTime);
-		collision(0.01);
-		drawScreen(0.01);
+		collision(0.01); // defined until stable fps
+		drawScreen(0.01); // defined until stable fps
 
 		return true;
 	}
