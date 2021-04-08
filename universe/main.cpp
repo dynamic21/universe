@@ -26,7 +26,8 @@ public:
 	vd2d posv;
 	Pixel color;
 
-	ball(vd2d Pos, vd2d Posv, Pixel Color) {
+	ball(vd2d Pos, vd2d Posv, Pixel Color)
+	{
 		pos = Pos;
 		posv = Posv;
 		color = Color;
@@ -73,7 +74,7 @@ public:
 		return Pixel(r * 0xff, g * 0xff, b * 0xff);
 	}
 
-	void control(float fElapsedTime)
+	void control(double fElapsedTime)
 	{
 		if (GetKey(Key::Q).bHeld) { zoom /= pow(2, fElapsedTime); }
 		if (GetKey(Key::E).bHeld) { zoom *= pow(2, fElapsedTime); }
@@ -87,7 +88,7 @@ public:
 		pos += posv * fElapsedTime;
 	}
 
-	void collision(float fElapsedTime)
+	void collision()
 	{
 		for (int i = 0; i < balls.size() - 1; i++)
 		{
@@ -96,12 +97,13 @@ public:
 				vd2d dpos = balls[j].pos - balls[i].pos;
 				double dis = dpos.mag2();
 
-				if (dis < 4) {
-
+				if (dis < 4)
+				{
 					dpos /= sqrt(dis);
 					dis = (balls[j].posv - balls[i].posv).dot(dpos);
 
-					if (dis < 0) {
+					if (dis < 0)
+					{
 						dpos *= dis;
 						balls[i].posv += dpos;
 						balls[j].posv -= dpos;
@@ -126,7 +128,7 @@ public:
 		}
 	}
 
-	void drawScreen(float fElapsedTime)
+	void drawScreen(double fElapsedTime)
 	{
 		Clear(Pixel(0, 0, 0));
 
@@ -156,11 +158,11 @@ public:
 		return true;
 	}
 
-	bool OnUserUpdate(float fElapsedTime) override
+	bool OnUserUpdate(double fElapsedTime) override
 	{
 		control(fElapsedTime);
 		gravity(fElapsedTime);
-		collision(fElapsedTime);
+		collision();
 		drawScreen(fElapsedTime);
 
 		return true;
