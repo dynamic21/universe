@@ -211,7 +211,6 @@ public:
 
 	bool OnUserCreate() override
 	{
-		//grid.clear();
 		zoom = 16;
 		halfScreen = { (double)ScreenWidth() / 2, (double)ScreenHeight() / 2 };
 		m_z = (unsigned int)duration_cast<seconds>(high_resolution_clock::now().time_since_epoch()).count();
