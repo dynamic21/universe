@@ -132,7 +132,7 @@ public:
 				{
 					for (int l = k + 1; l < j->second.size(); l++)
 					{
-						DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[j->second[l]].pos - pos) * zoom + halfScreen);
+						//DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[j->second[l]].pos - pos) * zoom + halfScreen);
 						ballToBall(j->second[k], j->second[l]);
 					}
 
@@ -146,7 +146,7 @@ public:
 						{
 							for (int l = 0; l < find2->second.size(); l++)
 							{
-								DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[find2->second[l]].pos - pos) * zoom + halfScreen);
+								//DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[find2->second[l]].pos - pos) * zoom + halfScreen);
 								ballToBall(j->second[k], find2->second[l]);
 							}
 						}
@@ -162,7 +162,7 @@ public:
 						{
 							for (int l = 0; l < find2->second.size(); l++)
 							{
-								DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[find2->second[l]].pos - pos) * zoom + halfScreen);
+								//DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[find2->second[l]].pos - pos) * zoom + halfScreen);
 								ballToBall(j->second[k], find2->second[l]);
 							}
 						}
@@ -173,7 +173,7 @@ public:
 						{
 							for (int l = 0; l < find2->second.size(); l++)
 							{
-								DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[find2->second[l]].pos - pos) * zoom + halfScreen);
+								//DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[find2->second[l]].pos - pos) * zoom + halfScreen);
 								ballToBall(j->second[k], find2->second[l]);
 							}
 						}
@@ -184,7 +184,7 @@ public:
 						{
 							for (int l = 0; l < find2->second.size(); l++)
 							{
-								DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[find2->second[l]].pos - pos) * zoom + halfScreen);
+								//DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[find2->second[l]].pos - pos) * zoom + halfScreen);
 								ballToBall(j->second[k], find2->second[l]);
 							}
 						}
@@ -204,8 +204,8 @@ public:
 			balls[i].pos += balls[i].posv * fElapsedTime;
 			grid[int(balls[i].pos.x)][int(balls[i].pos.y)].push_back(i);
 			vd2d bPos = (balls[i].pos - pos) * zoom;
-			if (vd2d{ abs(bPos.x), abs(bPos.x) } < halfScreen)
-				FillCircle(bPos + halfScreen, zoom * 0.5, balls[i].color);
+			//if (vd2d{ abs(bPos.x), abs(bPos.x) } < halfScreen)
+			FillCircle(bPos + halfScreen, zoom * 0.5, balls[i].color);
 		}
 	}
 
@@ -216,13 +216,14 @@ public:
 		m_z = (unsigned int)duration_cast<seconds>(high_resolution_clock::now().time_since_epoch()).count();
 		m_w = (unsigned int)duration_cast<microseconds>(high_resolution_clock::now().time_since_epoch()).count();
 
-		for (int i = 0; i < 10000; i++)
+		for (int i = 0; i < 100000; i++)
 		{
-			double randNum = doubleRand() * 6.28318530718;
-			vd2d bPos = vd2d{ doubleRand() * ScreenWidth(), doubleRand() * ScreenHeight() } - halfScreen;
-			vd2d bPosv = { cos(randNum), sin(randNum) };
-			Pixel bColor = mapToRainbow(doubleRand() * 2 + 0.0001 * (bPos.x * bPos.x + bPos.y * bPos.y));
-			ball newBall(bPos, bPosv * 10, bColor);
+			double randNum1 = doubleRand() * 6.28318530718;
+			double randNum2 = doubleRand() * 6.28318530718;
+			vd2d bPos = (vd2d{ cos(randNum1), sin(randNum1) }) * ScreenHeight() * (1 - doubleRand() * doubleRand());
+			vd2d bPosv = (vd2d{ cos(randNum2), sin(randNum2) }) * 10;
+			Pixel bColor = mapToRainbow(doubleRand() * 2 + 0.1 * sqrt(bPos.x * bPos.x + bPos.y * bPos.y));
+			ball newBall(bPos, bPosv, bColor);
 			balls.push_back(newBall);
 			grid[int(bPos.x)][int(bPos.y)].push_back(i);
 		}
@@ -232,7 +233,7 @@ public:
 
 	bool OnUserUpdate(double fElapsedTime) override
 	{
-		drawScreen(fElapsedTime);
+		drawScreen(0.01);
 		control(fElapsedTime);
 		//gravity(fElapsedTime);
 		collision();
