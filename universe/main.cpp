@@ -1,16 +1,17 @@
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
+#include <unordered_map>
 
 using olc::Key;
 using olc::vd2d;
 using olc::Pixel;
 
-using std::map;
 using std::max;
 using std::min;
 using std::endl;
 using std::cout;
 using std::vector;
+using std::unordered_map;
 
 using std::chrono::seconds;
 using std::chrono::microseconds;
@@ -48,7 +49,7 @@ public:
 
 	vector<ball> balls;
 
-	map<int, map<int, vector<int>>> grid;
+	unordered_map<int, unordered_map<int, vector<int>>> grid;
 
 	unsigned int intRand()
 	{
@@ -121,36 +122,23 @@ public:
 
 	void collision()
 	{
-		map<int, map<int, vector<int>>>::iterator find1;
-		map<int, vector<int>>::iterator find2;
+		unordered_map<int, unordered_map<int, vector<int>>>::iterator find1;
+		unordered_map<int, vector<int>>::iterator find2;
 
-		for (map<int, map<int, vector<int>>>::iterator i = grid.begin(); i != grid.end(); i++)
+		for (unordered_map<int, unordered_map<int, vector<int>>>::iterator i = grid.begin(); i != grid.end(); i++)
 		{
-			for (map<int, vector<int>>::iterator j = i->second.begin(); j != i->second.end(); j++)
+			for (unordered_map<int, vector<int>>::iterator j = i->second.begin(); j != i->second.end(); j++)
 			{
 				for (int k = 0; k < j->second.size(); k++)
 				{
 					for (int l = k + 1; l < j->second.size(); l++)
-					{
-						//DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[j->second[l]].pos - pos) * zoom + halfScreen);
 						ballToBall(j->second[k], j->second[l]);
-					}
 
-					find1 = grid.find(i->first);
+					find2 = i->second.find(j->first + 1);
 
-					if (find1 != grid.end())
-					{
-						find2 = find1->second.find(j->first + 1);
-
-						if (find2 != find1->second.end())
-						{
-							for (int l = 0; l < find2->second.size(); l++)
-							{
-								//DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[find2->second[l]].pos - pos) * zoom + halfScreen);
-								ballToBall(j->second[k], find2->second[l]);
-							}
-						}
-					}
+					if (find2 != i->second.end())
+						for (int l = 0; l < find2->second.size(); l++)
+							ballToBall(j->second[k], find2->second[l]);
 
 					find1 = grid.find(i->first + 1);
 
@@ -159,35 +147,20 @@ public:
 						find2 = find1->second.find(j->first - 1);
 
 						if (find2 != find1->second.end())
-						{
 							for (int l = 0; l < find2->second.size(); l++)
-							{
-								//DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[find2->second[l]].pos - pos) * zoom + halfScreen);
 								ballToBall(j->second[k], find2->second[l]);
-							}
-						}
 
 						find2 = find1->second.find(j->first);
 
 						if (find2 != find1->second.end())
-						{
 							for (int l = 0; l < find2->second.size(); l++)
-							{
-								//DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[find2->second[l]].pos - pos) * zoom + halfScreen);
 								ballToBall(j->second[k], find2->second[l]);
-							}
-						}
 
 						find2 = find1->second.find(j->first + 1);
 
 						if (find2 != find1->second.end())
-						{
 							for (int l = 0; l < find2->second.size(); l++)
-							{
-								//DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[find2->second[l]].pos - pos) * zoom + halfScreen);
 								ballToBall(j->second[k], find2->second[l]);
-							}
-						}
 					}
 				}
 			}
@@ -211,7 +184,7 @@ public:
 
 	bool OnUserCreate() override
 	{
-		zoom = 16;
+		zoom = 32;
 		halfScreen = { (double)ScreenWidth() / 2, (double)ScreenHeight() / 2 };
 		m_z = (unsigned int)duration_cast<seconds>(high_resolution_clock::now().time_since_epoch()).count();
 		m_w = (unsigned int)duration_cast<microseconds>(high_resolution_clock::now().time_since_epoch()).count();
@@ -226,7 +199,21 @@ public:
 			ball newBall(bPos, bPosv, bColor);
 			balls.push_back(newBall);
 			grid[int(bPos.x)][int(bPos.y)].push_back(i);
-		}
+		}/**/
+
+		/*vd2d bPos = vd2d{ 0, -0.1 };
+		vd2d bPosv = vd2d{ 0, 0 };
+		Pixel bColor = mapToRainbow(doubleRand() * 6);
+		ball newBall(bPos, bPosv, bColor);
+		balls.push_back(newBall);
+		grid[int(bPos.x)][int(bPos.y)].push_back(0);
+
+		bPos = vd2d{ 1, 0.89 };
+		bPosv = vd2d{ -1, 0 };
+		bColor = mapToRainbow(doubleRand() * 6);
+		ball nextBall(bPos, bPosv, bColor);
+		balls.push_back(nextBall);
+		grid[int(bPos.x)][int(bPos.y)].push_back(1);*/
 
 		return true;
 	}
