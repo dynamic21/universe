@@ -18,7 +18,7 @@ using std::chrono::microseconds;
 using std::chrono::duration_cast;
 using std::chrono::high_resolution_clock;
 
-#define G 1
+#define G 0.08
 #define controlFriction 0.1
 
 class ball
@@ -49,7 +49,7 @@ public:
 
 	vector<ball> balls;
 
-	unordered_map<int, unordered_map<int, vector<int>>> grid;
+	unordered_map<int, unordered_map<int, vector<int>>> collisionSpace;
 
 	unsigned int intRand()
 	{
@@ -101,7 +101,7 @@ public:
 		}
 	}
 
-	void ballToBall(int i, int j)
+	void ballHitBall(int i, int j)
 	{
 		vd2d dpos = balls[j].pos - balls[i].pos;
 		double dis = dpos.mag2();
@@ -125,42 +125,57 @@ public:
 		unordered_map<int, unordered_map<int, vector<int>>>::iterator find1;
 		unordered_map<int, vector<int>>::iterator find2;
 
-		for (unordered_map<int, unordered_map<int, vector<int>>>::iterator i = grid.begin(); i != grid.end(); i++)
+		for (unordered_map<int, unordered_map<int, vector<int>>>::iterator i = collisionSpace.begin(); i != collisionSpace.end(); i++)
 		{
 			for (unordered_map<int, vector<int>>::iterator j = i->second.begin(); j != i->second.end(); j++)
 			{
 				for (int k = 0; k < j->second.size(); k++)
 				{
 					for (int l = k + 1; l < j->second.size(); l++)
-						ballToBall(j->second[k], j->second[l]);
+					{
+						ballHitBall(j->second[k], j->second[l]);
+						//DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[j->second[l]].pos - pos) * zoom + halfScreen);
+					}
 
 					find2 = i->second.find(j->first + 1);
 
 					if (find2 != i->second.end())
 						for (int l = 0; l < find2->second.size(); l++)
-							ballToBall(j->second[k], find2->second[l]);
+						{
+							ballHitBall(j->second[k], find2->second[l]);
+							//DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[find2->second[l]].pos - pos) * zoom + halfScreen);
+						}
 
-					find1 = grid.find(i->first + 1);
+					find1 = collisionSpace.find(i->first + 1);
 
-					if (find1 != grid.end())
+					if (find1 != collisionSpace.end())
 					{
 						find2 = find1->second.find(j->first - 1);
 
 						if (find2 != find1->second.end())
 							for (int l = 0; l < find2->second.size(); l++)
-								ballToBall(j->second[k], find2->second[l]);
+							{
+								ballHitBall(j->second[k], find2->second[l]);
+								//DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[find2->second[l]].pos - pos) * zoom + halfScreen);
+							}
 
 						find2 = find1->second.find(j->first);
 
 						if (find2 != find1->second.end())
 							for (int l = 0; l < find2->second.size(); l++)
-								ballToBall(j->second[k], find2->second[l]);
+							{
+								ballHitBall(j->second[k], find2->second[l]);
+								//DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[find2->second[l]].pos - pos) * zoom + halfScreen);
+							}
 
 						find2 = find1->second.find(j->first + 1);
 
 						if (find2 != find1->second.end())
 							for (int l = 0; l < find2->second.size(); l++)
-								ballToBall(j->second[k], find2->second[l]);
+							{
+								ballHitBall(j->second[k], find2->second[l]);
+								//DrawLine((balls[j->second[k]].pos - pos) * zoom + halfScreen, (balls[find2->second[l]].pos - pos) * zoom + halfScreen);
+							}
 					}
 				}
 			}
@@ -170,50 +185,35 @@ public:
 	void drawScreen(double fElapsedTime)
 	{
 		Clear(Pixel(0, 0, 0));
-		grid.clear();
+		collisionSpace.clear();
 
 		for (int i = 0; i < balls.size(); i++)
 		{
 			balls[i].pos += balls[i].posv * fElapsedTime;
-			grid[int(balls[i].pos.x)][int(balls[i].pos.y)].push_back(i);
-			vd2d bPos = (balls[i].pos - pos) * zoom;
-			//if (vd2d{ abs(bPos.x), abs(bPos.x) } < halfScreen)
-			FillCircle(bPos + halfScreen, zoom * 0.5, balls[i].color);
+			vd2d bPos = balls[i].pos * 1;
+			collisionSpace[int(bPos.x) - (bPos.x < 0)][int(bPos.y) - (bPos.y < 0)].push_back(i);
+			FillCircle((balls[i].pos - pos) * zoom + halfScreen, zoom * 0.5, balls[i].color);
 		}
 	}
 
 	bool OnUserCreate() override
 	{
-		zoom = 32;
+		zoom = 8;
 		halfScreen = { (double)ScreenWidth() / 2, (double)ScreenHeight() / 2 };
 		m_z = (unsigned int)duration_cast<seconds>(high_resolution_clock::now().time_since_epoch()).count();
 		m_w = (unsigned int)duration_cast<microseconds>(high_resolution_clock::now().time_since_epoch()).count();
 
-		for (int i = 0; i < 100000; i++)
+		for (int i = 0; i < 1000; i++)
 		{
 			double randNum1 = doubleRand() * 6.28318530718;
 			double randNum2 = doubleRand() * 6.28318530718;
-			vd2d bPos = (vd2d{ cos(randNum1), sin(randNum1) }) * ScreenHeight() * (1 - doubleRand() * doubleRand());
-			vd2d bPosv = (vd2d{ cos(randNum2), sin(randNum2) }) * 10;
+			vd2d bPos = (vd2d{ cos(randNum1), sin(randNum1) }) * (1 - doubleRand() * doubleRand()) * 100;
+			vd2d bPosv = (vd2d{ cos(randNum2), sin(randNum2) }) * 1;
 			Pixel bColor = mapToRainbow(doubleRand() * 2 + 0.1 * sqrt(bPos.x * bPos.x + bPos.y * bPos.y));
 			ball newBall(bPos, bPosv, bColor);
 			balls.push_back(newBall);
-			grid[int(bPos.x)][int(bPos.y)].push_back(i);
-		}/**/
-
-		/*vd2d bPos = vd2d{ 0, -0.1 };
-		vd2d bPosv = vd2d{ 0, 0 };
-		Pixel bColor = mapToRainbow(doubleRand() * 6);
-		ball newBall(bPos, bPosv, bColor);
-		balls.push_back(newBall);
-		grid[int(bPos.x)][int(bPos.y)].push_back(0);
-
-		bPos = vd2d{ 1, 0.89 };
-		bPosv = vd2d{ -1, 0 };
-		bColor = mapToRainbow(doubleRand() * 6);
-		ball nextBall(bPos, bPosv, bColor);
-		balls.push_back(nextBall);
-		grid[int(bPos.x)][int(bPos.y)].push_back(1);*/
+			collisionSpace[int(bPos.x)][int(bPos.y)].push_back(i);
+		}
 
 		return true;
 	}
@@ -222,7 +222,7 @@ public:
 	{
 		drawScreen(0.01);
 		control(fElapsedTime);
-		//gravity(fElapsedTime);
+		gravity(fElapsedTime);
 		collision();
 
 		return true;
@@ -233,7 +233,7 @@ int main()
 {
 	Example demo;
 
-	if (demo.Construct(500, 500, 2, 2))
+	if (demo.Construct(1000, 1000, 1, 1))
 		demo.Start();
 
 	return 0;
